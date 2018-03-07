@@ -100,7 +100,7 @@ const isChainValid = (candidateChain) =>{
 };
 
 const replaceChain = (candidateChain) => {
-  if(isChainValid(newChain) && newChain.length > blockchain.length){
+  if(isChainValid(newChain) && newChain.length > getBlockchain().length){
     blockchain = newChain;
     return true;
   } else {
