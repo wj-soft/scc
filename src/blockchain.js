@@ -30,7 +30,7 @@ const getTimeStamp = () => {
   return new Date().getTime() / 1000;
 };
 
-const getBlockchain = ()=>{
+const getBlockchain = () => {
   return blockchain;
 }
 
@@ -50,6 +50,7 @@ const createNewBlock = (data) =>{
     newTimestame,
     data
   );
+  addBlockToChain(newBlock);
   return newBlock;
 };
 
@@ -115,4 +116,9 @@ const addBlockToChain = (candidateBlock) => {
   } else{
     return false;
   }
+}
+
+module.exports = {
+  getBlockchain,
+  createNewBlock
 }
