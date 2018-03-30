@@ -1,7 +1,7 @@
 const WebSockets = require("ws");
   Blockchain = require("./blockchain")
 
-const { getLastBlock } = Blockchain;
+const { getNewestBlock, isBlockStructureValid, addBlockToChain, replaceChain } = Blockchain;
 
 const sockets = [];
 
@@ -23,7 +23,7 @@ const getAll = () => {
   };
 };
 
-const blockchainResPonse = (data) => {
+const blockchainResponse = (data) => {
   return {
     type: BLOCKCHAIN_RESPONSE,
     data
@@ -47,6 +47,7 @@ const initSocketConnection = ws =>{
   handleSocketError(ws);
   sendMessage(ws, getLatest());
 };
+
 const parseData = data => {
   try{
     return JSON.parse(data)
@@ -64,13 +65,44 @@ const handleSocketMessages = ws => {
     console.log(message);
     switch(message.type){
       case GET_LATEST:
-        sendMessage(ws, getLastBlock());
+        sendMessage(ws, responseLatest());
+        break;
+      case BLOCKCHAIN_RESPONSE:
+        const receivedBlocks = message.data
+        if(receivedBlocks === null){
+          break;
+        }
+        handleBlockChainResponse(receivedBlocks)
         break;
     }
-  })
-}
+  });
+};
 
-const sendMessage = (ws, message) => ws.send(JSON.stringify(message))
+const handleBlockChainResponse = (receivedBlocks =>{
+  if(receivedBlocks.length === 0){
+    console.log("received block have a length of 0")
+    return
+  }
+  const latestBlockReceived = receivedBlocks[receivedBlocks.length -1];
+  if(!isBlockStructureValid(latestBlockReceived)) {
+    console.log("the block structure of the block received is not valid");
+    return 
+  }
+  const newestBlock = getNewestBlock();
+  if(latestBlockReceived.index > newestBlock.index){
+    if(newestBlock.hash === latestBlockReceived.previousHash){
+      addBlockToChain(latestBlockReceived)
+    }else if(receivedBlocks.length === 1 ){
+
+    }else {
+      replaceChain(receivedBlocks)
+    }
+  }
+};
+
+const sendMessage = (ws, message) => ws.send(JSON.stringify(message));
+
+const responseLatest = () => blockchainResponse(getLastBlock())
 
 const handleSocketError = ws => {
   const closeSocketConnection = ws => {
